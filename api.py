@@ -6,6 +6,9 @@ class TTAPI:
         self.url = url
         self.login = login
         self.password = password
+        self.header = {
+                "Content-Type": "application/json"
+            }
     
     def __post(self, endpoint, body, headers):
         response = requests.post(self.url + endpoint, data=json.dumps(body), headers=headers)
@@ -35,18 +38,38 @@ class TTAPI:
             "password": self.password,
             "remember-me": remember_me
         }
-        headers = {
-            "Content-Type": "application/json"
-        }
 
-        login_response = requests.post(self.url + '/sessions', json=credentials, headers=headers)
-        login_data = login_response.json()
+        login_data = self.__post('/sessions', credentials, self.header)
 
         if 'data' not in login_data or 'session-token' not in login_data['data']:
             print("Login failed:", login_data)
-            exit()
-
-        token = login_data['data']['session-token']
-        user = login_data['data']['user']
+            
+        self.token = login_data['data']['session-token']
+        self.user = login_data['data']['user']
         print("Logged in. Token acquired.")
+
+    def validate(self):
+        headers = {
+            "Authorization": self.token
+        }
+        validation_data = self.__post('/sessions/validate', headers)
+
+        if not validation_data:
+            print("Validation Failed")
+        else:
+            self.user ['external-id'] = validation_data['data']['external-id']
+            self.user ['id'] = validation_data['data']['id']
+            print("Validation Successful")
+    
+    def get_accounts(self):
+        accounts_data = self.__get('customers/me/accounts', self.header)
+
+        if not accounts_data:
+            print("Account Retrieval Failed")
+        else:
+            self.user['accounts'] = []
+            for account in accounts_data['data']['items']:
+                self.user['accounts'].append(account)
+        
+
 
