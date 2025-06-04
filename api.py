@@ -70,6 +70,28 @@ class TTAPI:
             self.user['accounts'] = []
             for account in accounts_data['data']['items']:
                 self.user['accounts'].append(account)
+    
+    def get_chains(self, ticker):
+        symbol = ticker
+
+        chain_data = self.__get('/option-chains/' + symbol, self.header)
+
+        if not chain_data:
+            print(f"Getting Option Chains for {symbol} failed!")
+        else:
+            items = chain_data.get("data", {}).get("items", [])
+            print(f"\n{len(items)} option contracts for {symbol.upper()}")
+            return items
+
+    def see_chains(self, chains):
+        for option in chains:
+            print(f"Symbol:        {option.get('symbol')}")
+            print(f"Type:          {option.get('option-type')}")
+            print(f"Strike Price:  {option.get('strike-price')}")
+            print(f"Expiration:    {option.get('expiration-date')}")
+            print(f"ExerciseStyle: {option.get('exercise-style')}")
+            print(f"Settlement:    {option.get('settlement-type')}")
+            print("-" * 40)
         
 
 
