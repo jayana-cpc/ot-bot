@@ -15,7 +15,6 @@ class TTAPI:
             "Authorization": self.token,
             "Content-Type": "application/json"
         }
-
     
     def __post(self, endpoint, body, headers):
         response = requests.post(self.url + endpoint, data=json.dumps(body), headers=headers)
@@ -50,7 +49,7 @@ class TTAPI:
 
             if 'data' not in login_data or 'session-token' not in login_data['data']:
                 print("Login failed:", login_data)
-                return
+                return False
 
             self.token = login_data['data']['session-token']
             self.expiration = time.time() + 86400
@@ -60,24 +59,27 @@ class TTAPI:
             self.update_env_variable("EXP", str(self.expiration))
 
             print("Logged in. Token saved.")
+            
         else:
             readable_time = datetime.datetime.fromtimestamp(self.expiration).strftime('%Y-%m-%d %H:%M:%S')
             print(f"Using existing token (valid until {readable_time})")
-
-
+        return True
+            
     def validate(self):
         headers = {
             "Authorization": self.token,
             "Content-Type": "application/json"
         }
-        validation_data = self.__post('/sessions/validate', body={}, headers=headers)
+        validation_data = self.__post('/sessions/validate', body={}, headers=self.header)
 
         if not validation_data:
             print("Validation Failed")
+            return False
         else:
             self.user ['external-id'] = validation_data['data']['external-id']
             self.user ['id'] = validation_data['data']['id']
             print("Validation Successful")
+            return True
     
     def get_accounts(self):
         accounts_data = self.__get('customers/me/accounts', self.header)
@@ -107,10 +109,21 @@ class TTAPI:
             print(f"Symbol:        {option.get('symbol')}")
             print(f"Type:          {option.get('option-type')}")
             print(f"Strike Price:  {option.get('strike-price')}")
-            print(f"Expiration:    {option.get('expiration-date')}")
+            print(f"DTE:    {option.get('days-to-expiration')}")
             print(f"ExerciseStyle: {option.get('exercise-style')}")
             print(f"Settlement:    {option.get('settlement-type')}")
             print("-" * 40)
+    
+    def get_option(self, ticker):
+        ticker = ticker.replace(" ", "")
+        option_endpoint = f"/instruments/equity-options/{ticker}"
+        option_data = self.__get(option_endpoint, {}, self.header)
+        
+        if not option_data:
+            print(f"Getting Option info for {ticker} failed!")
+        else:
+            print("Success!")
+            return option_data
     
     def update_env_variable(self, key, value):
         lines = []
