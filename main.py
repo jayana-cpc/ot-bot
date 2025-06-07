@@ -13,7 +13,7 @@ CERT_URL: str = "https://api.cert.tastyworks.com"
 PROD_URL: str = "https://api.tastyworks.com"
 CERT_WSS: str = "wss://streamer.tastyworks.com"
 LOGIN: str = str(os.getenv("LOGIN"))
-PASSWORD: str = "kyfnuq-6dahqo-bIhzim" # str(os.getenv("PASSWORD"))
+PASSWORD: str = str(os.getenv("PASSWORD"))
 
 TOKEN: str = str(os.getenv("TOKEN"))
 EXP: float = float(os.getenv("EXP") or 0)
